@@ -1,0 +1,51 @@
+library("randomForest")
+# Data Source: https://archive.ics.uci.edu/ml/machine-learning-databases/car/
+data1 <- read.csv("C:/Users/Nelson/Desktop/Curso Machine Learning/AFPCrecer/CursoEstudio/RandomForests/Ejercicios/car.data", header = TRUE, sep = ",")
+head(data1)
+str(data1)
+summary(data1)
+# Creando el Dataset de entrenamiento y el de testing con proporcion 70:30
+set.seed(100)
+train <- sample(nrow(data1), 0.7*nrow(data1), replace = FALSE)
+TrainSet <- data1[train,]
+ValidSet <- data1[-train,]
+summary(TrainSet)
+summary(ValidSet)
+model1 <- randomForest(Condition ~ ., data = TrainSet, importance = TRUE)
+model1
+
+model2 <- randomForest(Condition ~ ., data = TrainSet, ntree = 500, mtry = 6, importance = TRUE)
+model2
+
+# Predicciones sobre el set de entrenamiento
+predTrain <- predict(model2, TrainSet, type = "class")
+# Checking classification accuracy
+table(predTrain, TrainSet$Condition)
+
+# Predicciones sobre el set de pruebas
+predValid <- predict(model2, ValidSet, type = "class")
+# Checking classification accuracy
+mean(predValid == ValidSet$Condition)                    
+table(predValid,ValidSet$Condition)
+
+#Identificando mtry del modelo
+
+importance(model2)        
+varImpPlot(model2)     
+
+#Comparando con Arbol de Decision
+
+library(rpart)
+library(caret)
+library(e1071)
+
+model_dt = train(Condition ~ ., data = TrainSet, method = "rpart")
+model_dt_1 = predict(model_dt, data = TrainSet)
+table(model_dt_1, TrainSet$Condition)
+ 
+mean(model_dt_1 == TrainSet$Condition)
+
+model_dt_vs = predict(model_dt, newdata = ValidSet)
+table(model_dt_vs, ValidSet$Condition)
+ 
+mean(model_dt_vs == ValidSet$Condition)
